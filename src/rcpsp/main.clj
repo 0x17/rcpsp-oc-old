@@ -1,0 +1,142 @@
+(ns rcpsp.main (:use clojure.set rcpsp.helpers))
+
+; Structure
+(defn last-job [J] (apply max J))
+
+(defn preds [E j] (->> E
+                     (select #(= (second %) j))
+                     (map first)))
+
+(defn follow [E i] (->> E
+                      (select #(= (first %) i))
+                      (map second)))
+
+(defn z [oc-jumps t] (oc-jumps (apply max (filter #(<= % t) (keys oc-jumps)))))
+
+(defn st [d j ftj] (- ftj (d j)))
+(defn ft [d j stj] (+ stj (d j)))
+
+; Time analysis
+(defn est [ps ests j]
+  (assoc ests j (->> (preds (ps :E) j)
+                     (map (fn [i] (ft (ps :d) i (ests i))))
+                     (cons 1)
+                     (apply max))))
+
+(defn ests [ps] (reduce (partial est ps) {0 1} (difference (ps :J) #{0})))
+(defn efts [ps] (map2 (partial ft (ps :d)) ests))
+
+(defn minimal-makespan [ps] ((efts (ps :d)) (last-job (ps :J))))
+
+(defn lft [ps lfts j]
+  (assoc lfts j (->> (follow (ps :E) j)
+                     (map (fn [i] (st (ps :d) i (lfts i))))
+                     (cons (minimal-makespan ps))
+                     (apply min))))
+
+(defn determine-lfts [ps lfts rest]
+  (if (empty? rest)
+    lfts
+    (let [all-followers-done (first (filter (fn [i] (every? (partial contains? lfts) (follow i))) rest))
+          new-rest (remove #(= % all-followers-done) rest)]
+      (determine-lfts (ps :J) (ps :d) (lft (ps :J) (ps :d) lfts all-followers-done) new-rest))))
+
+(defn lfts [ps]
+  (let [J (ps :J)]
+    (determine-lfts ps {(last-job J) (minimal-makespan ps)} (difference J #{(last-job J)}))))
+
+(defn lsts [ps] (map2 (partial st (ps :d)) (lfts ps)))
+
+; Serial schedule generation scheme
+(defn job-act-in-period? [d sts t j]
+  (and (contains? sts j)
+       (let [stj (sts j)]
+         (<= stj t (- (ft d j stj) 1)))))
+
+(defn active-in-period [ps sts t] (filter (partial job-act-in-period? (ps :d) sts t) (ps :J)))
+
+(defn residual-in-period [ps sts t]
+  (- (+ (ps :K) (z (ps :oc-jumps) t))
+     (sum (ps :k) (active-in-period ps sts t))))
+
+(defn preds-finished? [ps sts j t]
+  (every? (fn [i] (and (contains? sts i) (<= (+ (sts i) ((ps :d) i)) t))) (preds (ps :E) j)))
+
+(defn enough-capacity? [ps sts j t]
+  (let [periods-active (set-range t (+ t (max 0 (- ((ps :d) j) 1))))]
+    (every? (fn [tau] (>= (residual-in-period ps sts tau) ((ps :k) j))) periods-active)))
+
+(defn st-feasible? [ps sts j t] (and (preds-finished? ps sts j t) (enough-capacity? ps sts j t)))
+
+(defn first-t-qualifying [pred] (loop [t 1] (if (pred t) t (recur (inc t)))))
+
+(defn schedule-next [ps sts j] (assoc sts j (first-t-qualifying (partial st-feasible? ps sts j))))
+
+(defn ssgs [ps λ] (reduce (partial schedule-next ps) {(first λ) 1} (rest λ)))
+
+; Parallel schedule generation scheme
+(defn eligible-set [ps sts t] (filter (fn [j] (preds-finished? ps sts j t)) (difference (ps :J) (keys sts))))
+
+(defn eligible-and-feasible-set [ps sts t] (filter (fn [j] (enough-capacity? ps sts j t)) (eligible-set ps sts t)))
+
+(defn next-dp [ps sts last-dp] (->> last-dp
+                                 (active-in-period ps sts)
+                                 (map (fn [i] (ft (ps :d) i (sts i))))
+                                 (cons-if-empty last-dp)
+                                 (apply min)))
+
+(defn schedule-in-dp [λ ps sts dp]
+  (loop [sts-acc sts]
+    (let [eafs (sort-by (fn [j] (index-of λ j)) (eligible-and-feasible-set ps sts-acc dp))]
+      (if (empty? eafs)
+        sts-acc
+        (recur (assoc sts-acc (first eafs) dp))))))
+
+(defn psgs-step [λ ps [dp sts]]
+  (let [new-sts (schedule-in-dp λ ps sts dp)]
+    [(next-dp ps new-sts dp) new-sts]))
+
+(defn psgs [ps λ] (second (loop [acc [1 {}]]
+                    (if (every? (partial contains? (acc 1)) (ps :J))
+                      acc
+                      (recur ((partial psgs-step λ ps) acc))))))
+
+;=======================================================================================================================
+; Fitness calculation
+;=======================================================================================================================
+
+(defn makespan-of-schedule [ps sts] (let [lj (last-job (ps :J))]
+                                      (ft (ps :d) lj (sts lj))))
+(defn periods-in-schedule [ps sts] (set-range 1 (makespan-of-schedule ps sts)))
+
+(defn total-overtime-cost [ps sts]
+  (sum (partial z (ps :oc-jumps)) (periods-in-schedule ps sts)))
+
+(defn revenue [ps sts]
+  (let [qlt (ps :qlt)]
+    (->> (ps :qlevels)
+         (map (fn [qlevel] (qlt [qlevel (makespan-of-schedule ps sts)])))
+         (apply max))))
+
+(defn fitness [ps sts] (- (revenue ps sts) (total-overtime-cost ps sts)))
+
+;=======================================================================================================================
+; Display output
+;=======================================================================================================================
+
+(defn times-capacity [ps jobs] (flatten (map (fn [j] (repeat ((ps :k) j) j)) jobs)))
+
+(defn fill-to-capacity [ps t v]
+  (let [cap-in-t (+ (ps :K) (z (ps :oc-jumps) t))]
+    (if (< (count v) cap-in-t)
+      (fill-to-capacity ps t (cons 0 v))
+      v)))
+
+(defn display-schedule [ps sts]
+  (letfn [(col-for-period [t] (->> (active-in-period ps sts t)
+                                   (times-capacity ps)
+                                   (fill-to-capacity ps t)))]
+    (map col-for-period (periods-in-schedule ps sts))))
+
+(defn display-residuals [ps sts]
+  (map (partial residual-in-period ps sts) (periods-in-schedule ps sts)))

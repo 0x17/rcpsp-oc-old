@@ -1,0 +1,29 @@
+(ns rcpsp.helpers (:use clojure.set))
+
+; Auxiliary functions
+(defn set-range [from to] (set (range from (+ to 1))))
+
+(defn map2 [f m] (into {} (map (fn [[k v]] [k (f k v)]) m)))
+
+(defn sum
+  ([coll] (apply + coll))
+  ([f coll] (apply + (map f coll))))
+
+(defn assoc-to-val [m v keys] (if (empty? keys) m (apply assoc m (interleave keys (repeat v)))))
+
+(defn cons-if-empty [head tail] (if (empty? tail) (cons head tail) tail))
+
+(defn cartesian-prod [A B] (mapcat (fn [a] (map (fn [b] [a b]) B)) A))
+
+(defn index-of [coll elem] (ffirst (filter #(= elem (second %)) (map vector (range) coll))))
+
+(defn tblkey->cell [tbl k]
+  (let [row (first k)
+        col (second k)
+        col-index (+ 1(index-of (first tbl) col))
+        row-index (+ 1 (index-of (rest (map first tbl)) row))]
+    ((tbl row-index) col-index)))
+
+(defn tbl->pair2num-map [tbl]
+  (let [ks (cartesian-prod (rest (map first tbl)) (first tbl))]
+    (apply hash-map (mapcat (fn [k] [k (tblkey->cell tbl k)]) ks))))
