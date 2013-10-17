@@ -1,0 +1,116 @@
+zimpl	v       0	x#0#1           	"x#0#1"
+zimpl	v       1	x#0#2           	"x#0#2"
+zimpl	v       2	x#0#3           	"x#0#3"
+zimpl	v       3	x#0#4           	"x#0#4"
+zimpl	v       4	x#0#5           	"x#0#5"
+zimpl	v       5	x#0#6           	"x#0#6"
+zimpl	v       6	x#0#7           	"x#0#7"
+zimpl	v       7	x#0#8           	"x#0#8"
+zimpl	v       8	x#0#9           	"x#0#9"
+zimpl	v       9	x#0#10          	"x#0#10"
+zimpl	v      10	x#1#1           	"x#1#1"
+zimpl	v      11	x#1#2           	"x#1#2"
+zimpl	v      12	x#1#3           	"x#1#3"
+zimpl	v      13	x#1#4           	"x#1#4"
+zimpl	v      14	x#1#5           	"x#1#5"
+zimpl	v      15	x#1#6           	"x#1#6"
+zimpl	v      16	x#1#7           	"x#1#7"
+zimpl	v      17	x#1#8           	"x#1#8"
+zimpl	v      18	x#1#9           	"x#1#9"
+zimpl	v      19	x#1#10          	"x#1#10"
+zimpl	v      20	x#2#1           	"x#2#1"
+zimpl	v      21	x#2#2           	"x#2#2"
+zimpl	v      22	x#2#3           	"x#2#3"
+zimpl	v      23	x#2#4           	"x#2#4"
+zimpl	v      24	x#2#5           	"x#2#5"
+zimpl	v      25	x#2#6           	"x#2#6"
+zimpl	v      26	x#2#7           	"x#2#7"
+zimpl	v      27	x#2#8           	"x#2#8"
+zimpl	v      28	x#2#9           	"x#2#9"
+zimpl	v      29	x#2#10          	"x#2#10"
+zimpl	v      30	x#3#1           	"x#3#1"
+zimpl	v      31	x#3#2           	"x#3#2"
+zimpl	v      32	x#3#3           	"x#3#3"
+zimpl	v      33	x#3#4           	"x#3#4"
+zimpl	v      34	x#3#5           	"x#3#5"
+zimpl	v      35	x#3#6           	"x#3#6"
+zimpl	v      36	x#3#7           	"x#3#7"
+zimpl	v      37	x#3#8           	"x#3#8"
+zimpl	v      38	x#3#9           	"x#3#9"
+zimpl	v      39	x#3#10          	"x#3#10"
+zimpl	v      40	x#4#1           	"x#4#1"
+zimpl	v      41	x#4#2           	"x#4#2"
+zimpl	v      42	x#4#3           	"x#4#3"
+zimpl	v      43	x#4#4           	"x#4#4"
+zimpl	v      44	x#4#5           	"x#4#5"
+zimpl	v      45	x#4#6           	"x#4#6"
+zimpl	v      46	x#4#7           	"x#4#7"
+zimpl	v      47	x#4#8           	"x#4#8"
+zimpl	v      48	x#4#9           	"x#4#9"
+zimpl	v      49	x#4#10          	"x#4#10"
+zimpl	v      50	x#5#1           	"x#5#1"
+zimpl	v      51	x#5#2           	"x#5#2"
+zimpl	v      52	x#5#3           	"x#5#3"
+zimpl	v      53	x#5#4           	"x#5#4"
+zimpl	v      54	x#5#5           	"x#5#5"
+zimpl	v      55	x#5#6           	"x#5#6"
+zimpl	v      56	x#5#7           	"x#5#7"
+zimpl	v      57	x#5#8           	"x#5#8"
+zimpl	v      58	x#5#9           	"x#5#9"
+zimpl	v      59	x#5#10          	"x#5#10"
+zimpl	v      60	x#6#1           	"x#6#1"
+zimpl	v      61	x#6#2           	"x#6#2"
+zimpl	v      62	x#6#3           	"x#6#3"
+zimpl	v      63	x#6#4           	"x#6#4"
+zimpl	v      64	x#6#5           	"x#6#5"
+zimpl	v      65	x#6#6           	"x#6#6"
+zimpl	v      66	x#6#7           	"x#6#7"
+zimpl	v      67	x#6#8           	"x#6#8"
+zimpl	v      68	x#6#9           	"x#6#9"
+zimpl	v      69	x#6#10          	"x#6#10"
+zimpl	v      70	z#1#1           	"z#1#1"
+zimpl	v      71	z#1#2           	"z#1#2"
+zimpl	v      72	z#1#3           	"z#1#3"
+zimpl	v      73	z#1#4           	"z#1#4"
+zimpl	v      74	z#1#5           	"z#1#5"
+zimpl	v      75	z#1#6           	"z#1#6"
+zimpl	v      76	z#1#7           	"z#1#7"
+zimpl	v      77	z#1#8           	"z#1#8"
+zimpl	v      78	z#1#9           	"z#1#9"
+zimpl	v      79	z#1#10          	"z#1#10"
+zimpl	v      80	makespan        	"makespan"
+zimpl	c       0	syncmakespan_1  	"syncmakespan_1"	0.0000000000000000e+000
+zimpl	c       1	eachjobonce_1   	"eachjobonce_1"	0.0000000000000000e+000
+zimpl	c       2	eachjobonce_2   	"eachjobonce_2"	0.0000000000000000e+000
+zimpl	c       3	eachjobonce_3   	"eachjobonce_3"	0.0000000000000000e+000
+zimpl	c       4	eachjobonce_4   	"eachjobonce_4"	0.0000000000000000e+000
+zimpl	c       5	eachjobonce_5   	"eachjobonce_5"	0.0000000000000000e+000
+zimpl	c       6	eachjobonce_6   	"eachjobonce_6"	0.0000000000000000e+000
+zimpl	c       7	eachjobonce_7   	"eachjobonce_7"	0.0000000000000000e+000
+zimpl	c       8	precedence_1    	"precedence_1"	0.0000000000000000e+000
+zimpl	c       9	precedence_2    	"precedence_2"	0.0000000000000000e+000
+zimpl	c      10	precedence_3    	"precedence_3"	0.0000000000000000e+000
+zimpl	c      11	precedence_4    	"precedence_4"	0.0000000000000000e+000
+zimpl	c      12	precedence_5    	"precedence_5"	0.0000000000000000e+000
+zimpl	c      13	precedence_6    	"precedence_6"	0.0000000000000000e+000
+zimpl	c      14	precedence_7    	"precedence_7"	0.0000000000000000e+000
+zimpl	c      15	rescapacity_1   	"rescapacity_1"	0.0000000000000000e+000
+zimpl	c      16	rescapacity_2   	"rescapacity_2"	0.0000000000000000e+000
+zimpl	c      17	rescapacity_3   	"rescapacity_3"	0.0000000000000000e+000
+zimpl	c      18	rescapacity_4   	"rescapacity_4"	0.0000000000000000e+000
+zimpl	c      19	rescapacity_5   	"rescapacity_5"	0.0000000000000000e+000
+zimpl	c      20	rescapacity_6   	"rescapacity_6"	0.0000000000000000e+000
+zimpl	c      21	rescapacity_7   	"rescapacity_7"	0.0000000000000000e+000
+zimpl	c      22	rescapacity_8   	"rescapacity_8"	0.0000000000000000e+000
+zimpl	c      23	rescapacity_9   	"rescapacity_9"	0.0000000000000000e+000
+zimpl	c      24	rescapacity_10  	"rescapacity_10"	0.0000000000000000e+000
+zimpl	c      25	overtimecapac@19	"overtimecapacity_1"	0.0000000000000000e+000
+zimpl	c      26	overtimecapac@1a	"overtimecapacity_2"	0.0000000000000000e+000
+zimpl	c      27	overtimecapac@1b	"overtimecapacity_3"	0.0000000000000000e+000
+zimpl	c      28	overtimecapac@1c	"overtimecapacity_4"	0.0000000000000000e+000
+zimpl	c      29	overtimecapac@1d	"overtimecapacity_5"	0.0000000000000000e+000
+zimpl	c      30	overtimecapac@1e	"overtimecapacity_6"	0.0000000000000000e+000
+zimpl	c      31	overtimecapac@1f	"overtimecapacity_7"	0.0000000000000000e+000
+zimpl	c      32	overtimecapac@20	"overtimecapacity_8"	0.0000000000000000e+000
+zimpl	c      33	overtimecapac@21	"overtimecapacity_9"	0.0000000000000000e+000
+zimpl	c      34	overtimecapac@22	"overtimecapacity_10"	0.0000000000000000e+000
