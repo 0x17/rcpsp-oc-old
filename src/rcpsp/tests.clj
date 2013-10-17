@@ -23,8 +23,8 @@
 (def example-schedule2 (psgs example-ps example-λ))
 
 ; Result of rcpsp.zpl
-(def optimal-schedule {0 1, 1 1, 2 2, 3 3, 4 3, 5 5, 6 6})
-(def optimal-zt {1 0, 2 0, 3 0, 4 0, 5 0, 6 0})
+(def optimal-schedule {0 1, 1 1, 2 2, 3 3, 4 1, 5 3, 6 4})
+(def optimal-zt {1 0, 2 2, 3 3, 4 3, 5 1, 6 0})
 
 ;=======================================================================================================================
 ; Tests

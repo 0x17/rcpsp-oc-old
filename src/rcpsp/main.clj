@@ -53,6 +53,14 @@
 
 (defn lsts [ps] (map2 (partial st (ps :d)) (lfts ps)))
 
+(defn xjt [ps sts]
+  (fn [j t]
+    (let [k (bool->num (zero? ((ps :d) j)))]
+      (bool->num (= t (+ k (ft (ps :d) j (sts j))))))))
+
+(defn sts<-xjt [ps xjt]
+  (hash-map (mapcat (fn [j] (vector j (where #(= 1 %) (partial xjt j) (map inc (range))))) (ps :J))))
+
 ;=======================================================================================================================
 ; Serial schedule generation scheme
 ;=======================================================================================================================
@@ -77,7 +85,7 @@
 
 (defn st-feasible? [ps sts j t] (and (preds-finished? ps sts j t) (enough-capacity? ps sts j t)))
 
-(defn first-t-qualifying [pred] (loop [t 1] (if (pred t) t (recur (inc t)))))
+(defn first-t-qualifying [pred] (where pred identity (map inc (range))))
 
 (defn schedule-next [ps sts j] (assoc sts j (first-t-qualifying (partial st-feasible? ps sts j))))
 
@@ -152,10 +160,10 @@
 (defn one-period-left-shift [sts j] (assoc sts j (dec (sts j))))
 
 (defn n-period-left-shift [sts j δ]
-  (if (= δ 0) sts (n-period-left-shift (one-period-left-shift sts j) j (dec δ))))
+  (if (zero? δ) sts (n-period-left-shift (one-period-left-shift sts j) j (dec δ))))
 
 (defn local-ls? [ps sts j δ]
-  (if (= δ 0) true (let [one-ls (one-period-left-shift sts j)]
+  (if (zero? δ) true (let [one-ls (one-period-left-shift sts j)]
                      (and (feasible? ps one-ls) (local-ls? ps one-ls j (dec δ))))))
 
 (defn global-ls? [ps sts j δ]

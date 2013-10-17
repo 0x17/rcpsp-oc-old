@@ -9,10 +9,10 @@ set T := { 1 .. timeHorizon };
 
 param nRes := 1;
 set R := { 1 .. nRes };
-param K[R] := <1> 2;
+param K[R] := <1> 0.0;
 
 param kappa[R] := <1> 1; # cost per unit of overtime
-param zMax[R] := <1> 2; # maximum overtime capacity
+param zMax[R] := <1> 4; # maximum overtime capacity
 
 param nJobs := 5;
 param last := nJobs+1;

@@ -30,4 +30,8 @@
 
 (def nneg? (comp not neg?))
 
-(defn exists? [pred coll] (not (every? (comp not pred) coll)))
+(defn exists? [pred coll] (not (not-any? pred coll)))
+
+(defn bool->num [cond] (if cond 1 0))
+
+(defn where [pred f coll] (ffirst (filter (comp pred second) (map #(vector % (f %)) coll))))

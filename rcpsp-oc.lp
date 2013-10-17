@@ -3,9 +3,9 @@
 \ set T := { 1 .. timeHorizon };
 \ param nRes := 1;
 \ set R := { 1 .. nRes };
-\ param K[R] := <1> 2;
+\ param K[R] := <1> 0.0;
 \ param kappa[R] := <1> 1;
-\ param zMax[R] := <1> 2;
+\ param zMax[R] := <1> 10;
 \ param nJobs := 5;
 \ param last := nJobs+1;
 \ set J := { 0 .. nJobs+1 };
@@ -94,54 +94,54 @@ Subject to
   +2 x#3#2 + x#3#1 <= 0
  rescapacity_1:
   - z#1#1 +2 x#5#1 + x#4#2 + x#4#1 + x#3#2 + x#3#1
-  +2 x#2#1 + x#1#1 <= 2
+  +2 x#2#1 + x#1#1 <= 0
  rescapacity_2:
   - z#1#2 +2 x#5#2 + x#4#3 + x#4#2 + x#3#3 + x#3#2
-  +2 x#2#2 + x#1#2 <= 2
+  +2 x#2#2 + x#1#2 <= 0
  rescapacity_3:
   - z#1#3 +2 x#5#3 + x#4#4 + x#4#3 + x#3#4 + x#3#3
-  +2 x#2#3 + x#1#3 <= 2
+  +2 x#2#3 + x#1#3 <= 0
  rescapacity_4:
   - z#1#4 +2 x#5#4 + x#4#5 + x#4#4 + x#3#5 + x#3#4
-  +2 x#2#4 + x#1#4 <= 2
+  +2 x#2#4 + x#1#4 <= 0
  rescapacity_5:
   - z#1#5 +2 x#5#5 + x#4#6 + x#4#5 + x#3#6 + x#3#5
-  +2 x#2#5 + x#1#5 <= 2
+  +2 x#2#5 + x#1#5 <= 0
  rescapacity_6:
   - z#1#6 +2 x#5#6 + x#4#7 + x#4#6 + x#3#7 + x#3#6
-  +2 x#2#6 + x#1#6 <= 2
+  +2 x#2#6 + x#1#6 <= 0
  rescapacity_7:
   - z#1#7 +2 x#5#7 + x#4#8 + x#4#7 + x#3#8 + x#3#7
-  +2 x#2#7 + x#1#7 <= 2
+  +2 x#2#7 + x#1#7 <= 0
  rescapacity_8:
   - z#1#8 +2 x#5#8 + x#4#9 + x#4#8 + x#3#9 + x#3#8
-  +2 x#2#8 + x#1#8 <= 2
+  +2 x#2#8 + x#1#8 <= 0
  rescapacity_9:
   - z#1#9 +2 x#5#9 + x#4#10 + x#4#9 + x#3#10 + x#3#9
-  +2 x#2#9 + x#1#9 <= 2
+  +2 x#2#9 + x#1#9 <= 0
  rescapacity_10:
   - z#1#10 +2 x#5#10 + x#4#10 + x#3#10 +2 x#2#10 + x#1#10
-  <= 2
+  <= 0
  overtimecapac@19:
-  + z#1#1 <= 2
+  + z#1#1 <= 10
  overtimecapac@1a:
-  + z#1#2 <= 2
+  + z#1#2 <= 10
  overtimecapac@1b:
-  + z#1#3 <= 2
+  + z#1#3 <= 10
  overtimecapac@1c:
-  + z#1#4 <= 2
+  + z#1#4 <= 10
  overtimecapac@1d:
-  + z#1#5 <= 2
+  + z#1#5 <= 10
  overtimecapac@1e:
-  + z#1#6 <= 2
+  + z#1#6 <= 10
  overtimecapac@1f:
-  + z#1#7 <= 2
+  + z#1#7 <= 10
  overtimecapac@20:
-  + z#1#8 <= 2
+  + z#1#8 <= 10
  overtimecapac@21:
-  + z#1#9 <= 2
+  + z#1#9 <= 10
  overtimecapac@22:
-  + z#1#10 <= 2
+  + z#1#10 <= 10
 Bounds
  0 <= x#0#1 <= 1
  0 <= x#0#2 <= 1
