@@ -1,6 +1,9 @@
 (ns rcpsp.main (:use clojure.set rcpsp.helpers))
 
+;=======================================================================================================================
 ; Structure
+;=======================================================================================================================
+
 (defn last-job-sched [sts] (apply max (keys sts)))
 (defn last-job-ps [ps] (apply max (ps :J)))
 
@@ -17,7 +20,10 @@
 (defn st [d j ftj] (- ftj (d j)))
 (defn ft [d j stj] (+ stj (d j)))
 
+;=======================================================================================================================
 ; Time analysis
+;=======================================================================================================================
+
 (defn est [ps ests j]
   (assoc ests j (->> (preds (ps :E) j)
                      (map (fn [i] (ft (ps :d) i (ests i))))
@@ -47,7 +53,10 @@
 
 (defn lsts [ps] (map2 (partial st (ps :d)) (lfts ps)))
 
+;=======================================================================================================================
 ; Serial schedule generation scheme
+;=======================================================================================================================
+
 (defn job-act-in-period? [d sts t j]
   (and (contains? sts j)
        (let [stj (sts j)]
@@ -74,7 +83,10 @@
 
 (defn ssgs [ps λ] (reduce (partial schedule-next ps) {(first λ) 1} (rest λ)))
 
+;=======================================================================================================================
 ; Parallel schedule generation scheme
+;=======================================================================================================================
+
 (defn eligible-set [ps sts t] (filter (fn [j] (preds-finished? ps sts j t)) (difference (ps :J) (keys sts))))
 
 (defn eligible-and-feasible-set [ps sts t] (filter (fn [j] (enough-capacity? ps sts j t)) (eligible-set ps sts t)))
@@ -120,7 +132,10 @@
 
 (defn fitness [ps sts] (- (revenue ps sts) (total-overtime-cost ps sts)))
 
+;=======================================================================================================================
 ; Feasibility checks
+;=======================================================================================================================
+
 (defn res-usage-feasible? [ps sts] (every? (fn [t] (nneg? (residual-in-period ps sts t)))
                                            (periods-in-schedule ps sts)))
 
@@ -130,7 +145,10 @@
                               (res-usage-feasible? ps sts)
                               (precedence-adhered? ps sts)))
 
+;=======================================================================================================================
 ; Left shifts
+;=======================================================================================================================
+
 (defn one-period-left-shift [sts j] (assoc sts j (dec (sts j))))
 
 (defn n-period-left-shift [sts j δ]
@@ -168,11 +186,12 @@
       (fill-to-capacity ps t (cons 0 v))
       v)))
 
+(defn col-for-period [ps sts t] (->> (active-in-period ps sts t)
+                                     (times-capacity ps)
+                                     (fill-to-capacity ps t)))
+
 (defn display-schedule [ps sts]
-  (letfn [(col-for-period [t] (->> (active-in-period ps sts t)
-                                   (times-capacity ps)
-                                   (fill-to-capacity ps t)))]
-    (map col-for-period (periods-in-schedule ps sts))))
+  (map (partial col-for-period ps sts) (periods-in-schedule ps sts)))
 
 (defn display-residuals [ps sts]
   (map (partial residual-in-period ps sts) (periods-in-schedule ps sts)))
