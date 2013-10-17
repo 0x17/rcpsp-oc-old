@@ -27,3 +27,7 @@
 (defn tbl->pair2num-map [tbl]
   (let [ks (cartesian-prod (rest (map first tbl)) (first tbl))]
     (apply hash-map (mapcat (fn [k] [k (tblkey->cell tbl k)]) ks))))
+
+(def nneg? (comp not neg?))
+
+(defn exists? [pred coll] (not (every? (comp not pred) coll)))

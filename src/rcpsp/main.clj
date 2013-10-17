@@ -1,7 +1,8 @@
 (ns rcpsp.main (:use clojure.set rcpsp.helpers))
 
 ; Structure
-(defn last-job [J] (apply max J))
+(defn last-job-sched [sts] (apply max (keys sts)))
+(defn last-job-ps [ps] (apply max (ps :J)))
 
 (defn preds [E j] (->> E
                      (select #(= (second %) j))
@@ -26,7 +27,7 @@
 (defn ests [ps] (reduce (partial est ps) {0 1} (difference (ps :J) #{0})))
 (defn efts [ps] (map2 (partial ft (ps :d)) ests))
 
-(defn minimal-makespan [ps] ((efts (ps :d)) (last-job (ps :J))))
+(defn minimal-makespan [ps] ((efts (ps :d)) (last-job-ps ps)))
 
 (defn lft [ps lfts j]
   (assoc lfts j (->> (follow (ps :E) j)
@@ -42,8 +43,7 @@
       (determine-lfts (ps :J) (ps :d) (lft (ps :J) (ps :d) lfts all-followers-done) new-rest))))
 
 (defn lfts [ps]
-  (let [J (ps :J)]
-    (determine-lfts ps {(last-job J) (minimal-makespan ps)} (difference J #{(last-job J)}))))
+  (determine-lfts ps {(last-job-ps ps) (minimal-makespan ps)} (difference (ps :J) #{(last-job-ps ps)})))
 
 (defn lsts [ps] (map2 (partial st (ps :d)) (lfts ps)))
 
@@ -51,9 +51,9 @@
 (defn job-act-in-period? [d sts t j]
   (and (contains? sts j)
        (let [stj (sts j)]
-         (<= stj t (- (ft d j stj) 1)))))
+         (<= stj t (dec (ft d j stj))))))
 
-(defn active-in-period [ps sts t] (filter (partial job-act-in-period? (ps :d) sts t) (ps :J)))
+(defn active-in-period [ps sts t] (filter (partial job-act-in-period? (ps :d) sts t) (keys sts)))
 
 (defn residual-in-period [ps sts t]
   (- (+ (ps :K) (z (ps :oc-jumps) t))
@@ -63,8 +63,8 @@
   (every? (fn [i] (and (contains? sts i) (<= (+ (sts i) ((ps :d) i)) t))) (preds (ps :E) j)))
 
 (defn enough-capacity? [ps sts j t]
-  (let [periods-active (set-range t (+ t (max 0 (- ((ps :d) j) 1))))]
-    (every? (fn [tau] (>= (residual-in-period ps sts tau) ((ps :k) j))) periods-active)))
+  (let [periods-active (set-range t (+ t (max 0 (dec ((ps :d) j)))))]
+    (every? (fn [τ] (>= (residual-in-period ps sts τ) ((ps :k) j))) periods-active)))
 
 (defn st-feasible? [ps sts j t] (and (preds-finished? ps sts j t) (enough-capacity? ps sts j t)))
 
@@ -105,7 +105,7 @@
 ; Fitness calculation
 ;=======================================================================================================================
 
-(defn makespan-of-schedule [ps sts] (let [lj (last-job (ps :J))]
+(defn makespan-of-schedule [ps sts] (let [lj (last-job-sched sts)]
                                       (ft (ps :d) lj (sts lj))))
 (defn periods-in-schedule [ps sts] (set-range 1 (makespan-of-schedule ps sts)))
 
@@ -119,6 +119,42 @@
          (apply max))))
 
 (defn fitness [ps sts] (- (revenue ps sts) (total-overtime-cost ps sts)))
+
+; Feasibility checks
+(defn res-usage-feasible? [ps sts] (every? (fn [t] (nneg? (residual-in-period ps sts t)))
+                                           (periods-in-schedule ps sts)))
+
+(defn precedence-adhered? [ps sts] (every? (fn [j] (preds-finished? ps sts j (sts j))) (keys sts)))
+
+(defn feasible? [ps sts] (and (every? pos? (vals sts))
+                              (res-usage-feasible? ps sts)
+                              (precedence-adhered? ps sts)))
+
+; Left shifts
+(defn one-period-left-shift [sts j] (assoc sts j (dec (sts j))))
+
+(defn n-period-left-shift [sts j δ]
+  (if (= δ 0) sts (n-period-left-shift (one-period-left-shift sts j) j (dec δ))))
+
+(defn local-ls? [ps sts j δ]
+  (if (= δ 0) true (let [one-ls (one-period-left-shift sts j)]
+                     (and (feasible? ps one-ls) (local-ls? ps one-ls j (dec δ))))))
+
+(defn global-ls? [ps sts j δ]
+  (and (feasible? ps (n-period-left-shift sts j δ)) (not (local-ls? ps sts j δ))))
+
+(defn local-ls-feasible? [ps sts j]
+  (feasible? ps (one-period-left-shift sts j)))
+
+(defn global-ls-feasible? [ps sts j]
+  (exists? (fn [δ] (global-ls? ps sts j δ)) (range 1 (sts j))))
+
+(defn semi-active? [ps sts]
+  (every? (comp not (partial local-ls-feasible? ps sts)) (keys sts)))
+
+(defn active? [ps sts]
+  (and (semi-active? ps sts)
+       (every? (comp not (partial global-ls-feasible? ps sts)) (keys sts))))
 
 ;=======================================================================================================================
 ; Display output

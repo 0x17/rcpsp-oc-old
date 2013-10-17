@@ -22,6 +22,10 @@
 (def example-schedule (ssgs example-ps example-λ))
 (def example-schedule2 (psgs example-ps example-λ))
 
+; Result of rcpsp.zpl
+(def optimal-schedule {0 1, 1 1, 2 2, 3 3, 4 3, 5 5, 6 6})
+(def optimal-zt {1 0, 2 0, 3 0, 4 0, 5 0, 6 0})
+
 ;=======================================================================================================================
 ; Tests
 ;=======================================================================================================================
@@ -71,5 +75,40 @@
                                                            ['A   10]
                                                            ['AA  15]
                                                            ['AAA 20]]))))
+
+(deftest test-makespan-of-schedule
+  (is (= 6 (makespan-of-schedule example-ps {6 6}))))
+
+(deftest test-periods-in-schedule
+  (is (= #{1 2 3 4 5 6} (periods-in-schedule example-ps {6 6}))))
+
+(deftest test-res-usage-feasible?
+  (is (false? (res-usage-feasible? example-ps {0 1, 1 1, 4 1, 2 2, 3 3, 5 5, 6 6})))
+  (is (true? (res-usage-feasible? example-ps example-schedule)))
+  (is (true? (res-usage-feasible? example-ps example-schedule2))))
+
+(deftest test-precedence-adhered?
+  (is (false? (precedence-adhered? example-ps {0 1, 1 1, 3 2}))))
+
+(deftest test-feasible?
+  (is (false? (feasible? example-ps {0 1, 1 1, 4 1, 2 2, 3 3, 5 5, 6 6})))
+  (is (false? (feasible? example-ps {0 1, 1 1, 3 2})))
+  (is (true? (feasible? example-ps example-schedule)))
+  (is (true? (feasible? example-ps example-schedule2))))
+
+(deftest test-n-period-left-shift
+  (is (= {6 2} (n-period-left-shift {6 2} 6 0)))
+  (is (= {6 2} (n-period-left-shift {6 6} 6 4))))
+
+(deftest test-local-ls-feasible?
+  (is (true? (local-ls-feasible? example-ps {0 1, 1 1, 2 3} 2)))
+  (is (false? (local-ls-feasible? example-ps example-schedule 2)))
+  (is (false? (local-ls-feasible? example-ps example-schedule 1))))
+
+(deftest test-semi-active?
+  (is (true? (semi-active? example-ps example-schedule))))
+
+(deftest test-active?
+  (is (true? (active? example-ps example-schedule))))
 
 (run-tests)
