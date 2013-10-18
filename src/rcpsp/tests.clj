@@ -158,4 +158,16 @@
 (def example-psplib-ps (ps-from-content example-content))
 (def example-psplib-λ (take 32 nat-nums))
 
+(deftest test-restrict-to-max-oc
+  (is (= {1 0, 3 5, 4 10} (restrict-to-max-oc example-ps {1 0, 3 5, 4 20}))))
+
+(deftest test-capacity-missing
+  (= '(1) (capacity-missing example-ps {1 1, 4 1} 2 #{2})))
+
+(deftest test-period-to-missing
+  (= {2 1} (period-to-missing example-ps {1 1, 4 1} 2 #{2})))
+
+(deftest test-book-oc
+  (= {1 0, 2 1, 3 5} (:oc-jumps (book-oc example-ps {1 1, 4 1} 2 2))))
+
 (run-tests)
