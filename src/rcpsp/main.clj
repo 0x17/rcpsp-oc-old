@@ -121,7 +121,7 @@
 (defn book-oc [ps sts t j]
   (let [pa (periods-active ps t j)
         residuals (map (partial residual-in-period ps sts) pa)
-        cap-missing (map #(- (j (:k ps)) %) residuals)
+        cap-missing (map #(- (get-in ps [:k j]) %) residuals)
         pmisspairs (map vector pa cap-missing)
         misshash (into {} (filter (comp pos? first) pmisspairs))
         old-jumps (:oc-jumps ps)
