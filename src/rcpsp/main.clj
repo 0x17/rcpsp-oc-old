@@ -59,7 +59,7 @@
       (bool->num (= t (+ k (ft (ps :d) j (sts j))))))))
 
 (defn sts<-xjt [ps xjt]
-  (hash-map (mapcat (fn [j] (vector j (where #(= 1 %) (partial xjt j) (map inc (range))))) (ps :J))))
+  (hash-map (mapcat (fn [j] (vector j (first-where (partial = 1) (partial xjt j) nat-nums))) (ps :J))))
 
 ;=======================================================================================================================
 ; Serial schedule generation scheme
@@ -85,7 +85,7 @@
 
 (defn st-feasible? [ps sts j t] (and (preds-finished? ps sts j t) (enough-capacity? ps sts j t)))
 
-(defn first-t-qualifying [pred] (where pred identity (map inc (range))))
+(defn first-t-qualifying [pred] (first-where pred identity nat-nums))
 
 (defn schedule-next [ps sts j] (assoc sts j (first-t-qualifying (partial st-feasible? ps sts j))))
 

@@ -3,6 +3,10 @@
 ; Auxiliary functions
 (defn set-range [from to] (set (range from (+ to 1))))
 
+(def nat-nums (map inc (range)))
+
+(defn range-from [from] (drop from (range)))
+
 (defn map2 [f m] (into {} (map (fn [[k v]] [k (f k v)]) m)))
 
 (defn sum
@@ -34,4 +38,13 @@
 
 (defn bool->num [cond] (if cond 1 0))
 
-(defn where [pred f coll] (ffirst (filter (comp pred second) (map #(vector % (f %)) coll))))
+(defn where [pred f coll] (map first (filter (comp pred second) (map #(vector % (f %)) coll))))
+(defn first-where [pred f coll] (first (where pred f coll)))
+
+(defn index-ofp [pred coll] (loop [i 0] (if (pred (nth coll i)) i (recur (inc i)))))
+
+(defn fiber [f domain] (fn [x] (where (partial = x) f domain)))
+
+(defn elems-between [start end coll] (->> coll (drop (inc start)) (take (dec (- end start)))))
+
+(defn read-lines [f] (seq (.split (slurp f) "\n")))

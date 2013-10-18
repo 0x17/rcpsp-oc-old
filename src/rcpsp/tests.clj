@@ -1,4 +1,4 @@
-(ns rcpsp (:use clojure.set clojure.test rcpsp.helpers rcpsp.main))
+(ns rcpsp.test (:use clojure.set clojure.test rcpsp.helpers rcpsp.main rcpsp.psplib-reader))
 
 ;=======================================================================================================================
 ; Example data
@@ -110,5 +110,35 @@
 
 (deftest test-active?
   (is (true? (active? example-ps example-schedule))))
+
+(def example-content (read-lines "j301_9.sm"))
+
+(deftest test-horizon
+  (is (= 160 (horizon example-content))))
+
+(deftest test-precedence-lines
+  (is (= 32 (count (precedence-lines example-content))))
+  (is (not-any? #(.contains % "jobnr") (precedence-lines example-content))))
+
+(deftest test-reqdur-lines
+  (is (= 32 (count (reqdur-lines example-content)))))
+
+(deftest test-index-ofp
+  (is (= 4 (index-ofp even? '(1 3 5 9 8 2 1)))))
+
+(deftest test-succ-to-edges
+  (is (= #{[1 2] [1 3] [1 4] [2 3] [2 4] [4 1]}
+         (succ-to-edges {1 #{2 3 4}, 2 #{3 4}, 4 #{1}}))))
+
+(deftest test-succ-from-line
+  (is (= {10 #{11 15 24}}
+         (succ-from-line {} "  10        1          3          11  15  24"))))
+
+(deftest test-succ-from-content
+  (let [succ (succ-from-content example-content)]
+    (is (= #{11 15 24} (succ 10)))))
+
+(deftest test-parse-capacity-line
+  (is (= {:R1 12 :R2 11 :R3 11 :R4 13} (parse-capacity-line "   12   11   11   13"))))
 
 (run-tests)
