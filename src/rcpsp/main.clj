@@ -4,6 +4,8 @@
 ; Structure
 ;=======================================================================================================================
 
+(defstruct projstruct :J :d :k :E :K :oc-jumps :zmax :qlevels :qlt)
+
 (defn last-job-sched [sts] (apply max (keys sts)))
 (defn last-job-ps [ps] (apply max (ps :J)))
 

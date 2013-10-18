@@ -8,15 +8,16 @@
                                      ['AAA 50 40 30 20 10 9  8]
                                      ['AA  40 30 20 10  9 8  7]
                                      ['A   30 20 10  9  8 7  6]]))
-(def example-ps {:J (set-range 0 6)
-                 :d {0 0, 1 1, 2 1, 3 2, 4 2, 5 1, 6 0}
-                 :k {0 0, 1 1, 2 2, 3 1, 4 1, 5 2, 6 0}
-                 :E #{[0 1] [1 2] [2 3] [0 4] [4 5] [5 6] [3 6]}
-                 :K 2
-                 :oc-jumps {1 0, 3 5}
-                 :zmax 10
-                 :qlevels ['A 'AA 'AAA]
-                 :qlt example-qlt})
+(def example-ps (struct-map projstruct
+                   :J (set-range 0 6)
+                   :d {0 0, 1 1, 2 1, 3 2, 4 2, 5 1, 6 0}
+                   :k {0 0, 1 1, 2 2, 3 1, 4 1, 5 2, 6 0}
+                   :E #{[0 1] [1 2] [2 3] [0 4] [4 5] [5 6] [3 6]}
+                   :K 2
+                   :oc-jumps {1 0, 3 5}
+                   :zmax 10
+                   :qlevels ['A 'AA 'AAA]
+                   :qlt example-qlt))
 (def example-λ '(0 1 2 3 4 5 6))
 
 (def example-schedule (ssgs example-ps example-λ))
@@ -140,5 +141,11 @@
 
 (deftest test-parse-capacity-line
   (is (= {:R1 12 :R2 11 :R3 11 :R4 13} (parse-capacity-line "   12   11   11   13"))))
+
+(deftest test-ps-from-content
+  (let [ps (ps-from-content example-content)]
+    (is (= (set-range 1 32) (ps :J)))
+    (is (= 12 (ps :K)))
+    (is (subset? #{[1 4]} (ps :E)))))
 
 (run-tests)

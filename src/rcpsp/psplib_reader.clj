@@ -56,15 +56,17 @@
 (defn ps-from-content [content]
   (let [edges (->> content succ-from-content succ-to-edges)
         reqdur-hashes (map parse-reqdur-line (reqdur-lines content))
-        durations (apply hash-map (mapcat (fn [m] [(m :jobnr) (m :duration)]) reqdur-hashes))
-        demands (apply hash-map (mapcat (fn [m] [(m :jobnr) (m :R1)]) reqdur-hashes))
+        durations (unite-maps :jobnr :duration reqdur-hashes)
+        demands (unite-maps :jobnr :R1 reqdur-hashes)
         jobnums (map :jobnr reqdur-hashes)
         capacities (parse-capacity-line (capacity-line content))]
-    {:J (set jobnums)
-     :d durations
-     :k demands
-     :K (capacities :R1)
-     :oc-jumps {1 0}
-     :zmax 10}))
+    (struct-map projstruct
+      :J (set jobnums)
+      :E edges
+      :d durations
+      :k demands
+      :K (capacities :R1)
+      :oc-jumps {1 0}
+      :zmax 10)))
 
 (defn ps-from-file [f] (ps-from-content (read-lines f)))

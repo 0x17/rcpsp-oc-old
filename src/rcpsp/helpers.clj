@@ -9,6 +9,8 @@
 
 (defn map2 [f m] (into {} (map (fn [[k v]] [k (f k v)]) m)))
 
+(defn unite-maps [keysym valsym maps] (apply hash-map (mapcat (fn [m] [(m keysym) (m valsym)]) maps)))
+
 (defn sum
   ([coll] (apply + coll))
   ([f coll] (apply + (map f coll))))
