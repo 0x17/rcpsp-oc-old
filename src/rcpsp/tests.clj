@@ -8,8 +8,8 @@
                                      ['AAA 50 40 30 20 10 9  8]
                                      ['AA  40 30 20 10  9 8  7]
                                      ['A   30 20 10  9  8 7  6]]))
-(def example-ps (struct-map projstruct
-                   :J (set-range 0 6)
+(def example-ps (map->projrec
+                  {:J (set-range 0 6)
                    :d {0 0, 1 1, 2 1, 3 2, 4 2, 5 1, 6 0}
                    :k {0 0, 1 1, 2 2, 3 1, 4 1, 5 2, 6 0}
                    :E #{[0 1] [1 2] [2 3] [0 4] [4 5] [5 6] [3 6]}
@@ -17,7 +17,7 @@
                    :oc-jumps {1 0, 3 5}
                    :zmax 10
                    :qlevels ['A 'AA 'AAA]
-                   :qlt example-qlt))
+                   :qlt example-qlt}))
 (def example-λ '(0 1 2 3 4 5 6))
 
 (def example-schedule (ssgs example-ps example-λ))
@@ -30,8 +30,8 @@
 ;=======================================================================================================================
 ; Tests
 ;=======================================================================================================================
-(deftest test-preds (is (= '() (preds (example-ps :E) 0)))
-                    (is (= '(0) (preds (example-ps :E) 1) (preds (example-ps :E) 4))))
+(deftest test-preds (is (= '() (preds (:E example-ps) 0)))
+                    (is (= '(0) (preds (:E example-ps) 1) (preds (:E example-ps) 4))))
 
 (deftest test-active-in-period
   (is (= '(1) (active-in-period example-ps {0 1, 1 1} 1)))
@@ -144,8 +144,8 @@
 
 (deftest test-ps-from-content
   (let [ps (ps-from-content example-content)]
-    (is (= (set-range 1 32) (ps :J)))
-    (is (= 12 (ps :K)))
-    (is (subset? #{[1 4]} (ps :E)))))
+    (is (= (set-range 1 32) (:J ps)))
+    (is (= 12 (:K ps)))
+    (is (subset? #{[1 4]} (:E ps)))))
 
 (run-tests)

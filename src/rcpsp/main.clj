@@ -4,10 +4,10 @@
 ; Structure
 ;=======================================================================================================================
 
-(defstruct projstruct :J :d :k :E :K :oc-jumps :zmax :qlevels :qlt)
+(defrecord projrec [J d k E K oc-jumps zmax qlevels qlt])
 
 (defn last-job-sched [sts] (apply max (keys sts)))
-(defn last-job-ps [ps] (apply max (ps :J)))
+(defn last-job-ps [ps] (apply max (:J ps)))
 
 (defn preds [E j] (->> E
                      (select #(= (second %) j))
@@ -27,19 +27,19 @@
 ;=======================================================================================================================
 
 (defn est [ps ests j]
-  (assoc ests j (->> (preds (ps :E) j)
-                     (map (fn [i] (ft (ps :d) i (ests i))))
+  (assoc ests j (->> (preds (:E ps) j)
+                     (map (fn [i] (ft (:d ps) i (ests i))))
                      (cons 1)
                      (apply max))))
 
-(defn ests [ps] (reduce (partial est ps) {0 1} (difference (ps :J) #{0})))
-(defn efts [ps] (map2 (partial ft (ps :d)) ests))
+(defn ests [ps] (reduce (partial est ps) {0 1} (difference (:J ps) #{0})))
+(defn efts [ps] (map2 (partial ft (:d ps)) ests))
 
-(defn minimal-makespan [ps] ((efts (ps :d)) (last-job-ps ps)))
+(defn minimal-makespan [ps] ((efts (:d ps)) (last-job-ps ps)))
 
 (defn lft [ps lfts j]
-  (assoc lfts j (->> (follow (ps :E) j)
-                     (map (fn [i] (st (ps :d) i (lfts i))))
+  (assoc lfts j (->> (follow (:E ps) j)
+                     (map (fn [i] (st (:d ps) i (lfts i))))
                      (cons (minimal-makespan ps))
                      (apply min))))
 
@@ -48,20 +48,20 @@
     lfts
     (let [all-followers-done (first (filter (fn [i] (every? (partial contains? lfts) (follow i))) rest))
           new-rest (remove #(= % all-followers-done) rest)]
-      (determine-lfts (ps :J) (ps :d) (lft (ps :J) (ps :d) lfts all-followers-done) new-rest))))
+      (determine-lfts (:J ps) (:d ps) (lft (:J ps) (:d ps) lfts all-followers-done) new-rest))))
 
 (defn lfts [ps]
-  (determine-lfts ps {(last-job-ps ps) (minimal-makespan ps)} (difference (ps :J) #{(last-job-ps ps)})))
+  (determine-lfts ps {(last-job-ps ps) (minimal-makespan ps)} (difference (:J ps) #{(last-job-ps ps)})))
 
-(defn lsts [ps] (map2 (partial st (ps :d)) (lfts ps)))
+(defn lsts [ps] (map2 (partial st (:d ps)) (lfts ps)))
 
 (defn xjt [ps sts]
   (fn [j t]
-    (let [k (bool->num (zero? ((ps :d) j)))]
-      (bool->num (= t (+ k (ft (ps :d) j (sts j))))))))
+    (let [k (bool->num (zero? ((:d ps) j)))]
+      (bool->num (= t (+ k (ft (:d ps) j (sts j))))))))
 
 (defn sts<-xjt [ps xjt]
-  (hash-map (mapcat (fn [j] (vector j (first-where (partial = 1) (partial xjt j) nat-nums))) (ps :J))))
+  (hash-map (mapcat (fn [j] (vector j (first-where (partial = 1) (partial xjt j) nat-nums))) (:J ps))))
 
 ;=======================================================================================================================
 ; Serial schedule generation scheme
@@ -72,18 +72,18 @@
        (let [stj (sts j)]
          (<= stj t (dec (ft d j stj))))))
 
-(defn active-in-period [ps sts t] (filter (partial job-act-in-period? (ps :d) sts t) (keys sts)))
+(defn active-in-period [ps sts t] (filter (partial job-act-in-period? (:d ps) sts t) (keys sts)))
 
 (defn residual-in-period [ps sts t]
-  (- (+ (ps :K) (z (ps :oc-jumps) t))
-     (sum (ps :k) (active-in-period ps sts t))))
+  (- (+ (:K ps) (z (:oc-jumps ps) t))
+     (sum (:k ps) (active-in-period ps sts t))))
 
 (defn preds-finished? [ps sts j t]
-  (every? (fn [i] (and (contains? sts i) (<= (+ (sts i) ((ps :d) i)) t))) (preds (ps :E) j)))
+  (every? (fn [i] (and (contains? sts i) (<= (+ (sts i) ((:d ps) i)) t))) (preds (:E ps) j)))
 
 (defn enough-capacity? [ps sts j t]
-  (let [periods-active (set-range t (+ t (max 0 (dec ((ps :d) j)))))]
-    (every? (fn [τ] (>= (residual-in-period ps sts τ) ((ps :k) j))) periods-active)))
+  (let [periods-active (set-range t (+ t (max 0 (dec ((:d ps) j)))))]
+    (every? (fn [τ] (>= (residual-in-period ps sts τ) ((:k ps) j))) periods-active)))
 
 (defn st-feasible? [ps sts j t] (and (preds-finished? ps sts j t) (enough-capacity? ps sts j t)))
 
@@ -97,13 +97,13 @@
 ; Parallel schedule generation scheme
 ;=======================================================================================================================
 
-(defn eligible-set [ps sts t] (filter (fn [j] (preds-finished? ps sts j t)) (difference (ps :J) (keys sts))))
+(defn eligible-set [ps sts t] (filter (fn [j] (preds-finished? ps sts j t)) (difference (:J ps) (keys sts))))
 
 (defn eligible-and-feasible-set [ps sts t] (filter (fn [j] (enough-capacity? ps sts j t)) (eligible-set ps sts t)))
 
 (defn next-dp [ps sts last-dp] (->> last-dp
                                  (active-in-period ps sts)
-                                 (map (fn [i] (ft (ps :d) i (sts i))))
+                                 (map (fn [i] (ft (:d ps) i (sts i))))
                                  (cons-if-empty last-dp)
                                  (apply min)))
 
@@ -119,7 +119,7 @@
     [(next-dp ps new-sts dp) new-sts]))
 
 (defn psgs [ps λ] (second (loop [acc [1 {}]]
-                    (if (every? (partial contains? (acc 1)) (ps :J))
+                    (if (every? (partial contains? (acc 1)) (:J ps))
                       acc
                       (recur ((partial psgs-step λ ps) acc))))))
 
@@ -128,11 +128,11 @@
 ;=======================================================================================================================
 
 (defn makespan-of-schedule [ps sts] (let [lj (last-job-sched sts)]
-                                      (ft (ps :d) lj (sts lj))))
+                                      (ft (:d ps) lj (sts lj))))
 (defn periods-in-schedule [ps sts] (set-range 1 (makespan-of-schedule ps sts)))
 
 (defn total-overtime-cost [ps sts]
-  (sum (partial z (ps :oc-jumps)) (periods-in-schedule ps sts)))
+  (sum (partial z (:oc-jumps ps)) (periods-in-schedule ps sts)))
 
 (defn revenue [ps sts]
   (let [qlt (ps :qlt)]
@@ -188,10 +188,10 @@
 ; Display output
 ;=======================================================================================================================
 
-(defn times-capacity [ps jobs] (flatten (map (fn [j] (repeat ((ps :k) j) j)) jobs)))
+(defn times-capacity [ps jobs] (flatten (map (fn [j] (repeat ((:k ps) j) j)) jobs)))
 
 (defn fill-to-capacity [ps t v]
-  (let [cap-in-t (+ (ps :K) (z (ps :oc-jumps) t))]
+  (let [cap-in-t (+ (:k ps) (z (:oc-jumps ps) t))]
     (if (< (count v) cap-in-t)
       (fill-to-capacity ps t (cons 0 v))
       v)))

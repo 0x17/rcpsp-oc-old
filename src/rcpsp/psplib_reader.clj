@@ -60,13 +60,13 @@
         demands (unite-maps :jobnr :R1 reqdur-hashes)
         jobnums (map :jobnr reqdur-hashes)
         capacities (parse-capacity-line (capacity-line content))]
-    (struct-map projstruct
-      :J (set jobnums)
-      :E edges
-      :d durations
-      :k demands
-      :K (capacities :R1)
-      :oc-jumps {1 0}
-      :zmax 10)))
+    (map->projrec
+      {:J (set jobnums)
+       :E edges
+       :d durations
+       :k demands
+       :K (capacities :R1)
+       :oc-jumps {1 0}
+       :zmax 10})))
 
 (defn ps-from-file [f] (ps-from-content (read-lines f)))
