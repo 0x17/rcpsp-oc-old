@@ -46,7 +46,7 @@
 (defn determine-lfts [ps lfts rest]
   (if (empty? rest)
     lfts
-    (let [all-followers-done (first (filter (fn [i] (every? (partial contains? lfts) (follow i))) rest))
+    (let [all-followers-done (first (filter (fn [i] (every? lfts (follow i))) rest))
           new-rest (remove #(= % all-followers-done) rest)]
       (determine-lfts (:J ps) (:d ps) (lft (:J ps) (:d ps) lfts all-followers-done) new-rest))))
 
@@ -68,7 +68,7 @@
 ;=======================================================================================================================
 
 (defn job-act-in-period? [d sts t j]
-  (and (contains? sts j)
+  (and (sts j)
        (let [stj (sts j)]
          (<= stj t (dec (ft d j stj))))))
 
@@ -79,7 +79,7 @@
      (sum (:k ps) (active-in-period ps sts t))))
 
 (defn preds-finished? [ps sts j t]
-  (every? (fn [i] (and (contains? sts i) (<= (+ (sts i) ((:d ps) i)) t))) (preds (:E ps) j)))
+  (every? (fn [i] (and (sts i) (<= (+ (sts i) ((:d ps) i)) t))) (preds (:E ps) j)))
 
 (defn enough-capacity? [ps sts j t]
   (let [periods-active (set-range t (+ t (max 0 (dec ((:d ps) j)))))]
@@ -119,7 +119,7 @@
     [(next-dp ps new-sts dp) new-sts]))
 
 (defn psgs [ps λ] (second (loop [acc [1 {}]]
-                    (if (every? (partial contains? (acc 1)) (:J ps))
+                    (if (every? (acc 1) (:J ps))
                       acc
                       (recur ((partial psgs-step λ ps) acc))))))
 
