@@ -136,9 +136,12 @@
                                     (cons-if-empty last-dp)
                                     (apply min)))
 
+(defn adhere-λ [jobs λ]
+  (sort-by (fn [j] (index-of λ j)) jobs))
+
 (defn schedule-in-dp [λ ps sts dp]
   (loop [sts-acc sts]
-    (let [eafs (sort-by (fn [j] (index-of λ j)) (eligible-and-feasible-set ps sts-acc dp))]
+    (let [eafs (adhere-λ (eligible-and-feasible-set ps sts-acc dp) λ)]
       (if (empty? eafs)
         sts-acc
         (recur (assoc sts-acc (first eafs) dp))))))
@@ -148,7 +151,10 @@
     [(next-dp ps new-sts dp) new-sts]))
 
 (defn psgs [ps λ]
-  (second (loop [acc [1 {}]] (if (every? (acc 1) (:J ps)) acc (recur (psgs-step λ ps acc))))))
+  (-> (loop [acc [1 {}]]
+        (if (every? (acc 1) (:J ps))
+          acc
+          (recur (psgs-step λ ps acc)))) second))
 
 ;=======================================================================================================================
 ; Fitness calculation

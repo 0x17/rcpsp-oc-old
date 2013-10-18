@@ -1,4 +1,4 @@
-(ns rcpsp.test (:use clojure.set clojure.test rcpsp.helpers rcpsp.main rcpsp.psplib-reader))
+(ns rcpsp.main-tests (:use clojure.set clojure.test rcpsp.helpers rcpsp.main rcpsp.psplib-reader))
 
 ;=======================================================================================================================
 ; Example data
@@ -72,18 +72,6 @@
 
 (deftest psgs-step-test (is (= [3 {0 1, 1 1, 2 2}] (psgs-step example-λ example-ps [2 {0 1, 1 1}]))))
 
-(deftest test-tblkey->cell (is (= 15 (tblkey->cell [[     5 ]
-                                                    ['A   10]
-                                                    ['AA  15]
-                                                    ['AAA 20]] ['AA 5]))))
-(deftest test-tbl->pair2num-map (is (= {['A 5] 10,
-                                        ['AA 5] 15,
-                                        ['AAA 5] 20}
-                                       (tbl->pair2num-map [[     5 ]
-                                                           ['A   10]
-                                                           ['AA  15]
-                                                           ['AAA 20]]))))
-
 (deftest test-makespan-of-schedule
   (is (= 6 (makespan-of-schedule example-ps {6 6}))))
 
@@ -131,9 +119,6 @@
 (deftest test-reqdur-lines
   (is (= 32 (count (reqdur-lines example-content)))))
 
-(deftest test-index-ofp
-  (is (= 4 (index-ofp even? '(1 3 5 9 8 2 1)))))
-
 (deftest test-succ-to-edges
   (is (= #{[1 2] [1 3] [1 4] [2 3] [2 4] [4 1]}
          (succ-to-edges {1 #{2 3 4}, 2 #{3 4}, 4 #{1}}))))
@@ -169,5 +154,3 @@
 
 (deftest test-book-oc
   (= {1 0, 2 1, 3 5} (:oc-jumps (book-oc example-ps {1 1, 4 1} 2 2))))
-
-(run-tests)
