@@ -146,6 +146,9 @@
   (let [ps (ps-from-content example-content)]
     (is (= (set-range 1 32) (:J ps)))
     (is (= 12 (:K ps)))
-    (is (subset? #{[1 4]} (:E ps)))))
+    (is (subset? #{[1 4] [4 5]} (:E ps)))))
+
+(def example-psplib-ps (ps-from-content example-content))
+(def example-psplib-λ (take 32 nat-nums))
 
 (run-tests)
