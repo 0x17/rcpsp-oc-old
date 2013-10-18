@@ -91,9 +91,11 @@
 (defn preds-finished? [ps sts j t]
   (every? (fn [i] (and (sts i) (<= (+ (sts i) ((:d ps) i)) t))) (preds (:E ps) j)))
 
+(defn periods-active [ps t j]
+  (set-range t (+ t (max 0 (dec ((:d ps) j))))))
+
 (defn enough-capacity? [ps sts j t]
-  (let [periods-active (set-range t (+ t (max 0 (dec ((:d ps) j)))))]
-    (every? (fn [τ] (>= (residual-in-period ps sts τ) ((:k ps) j))) periods-active)))
+  (every? (fn [τ] (>= (residual-in-period ps sts τ) ((:k ps) j))) (periods-active ps t j)))
 
 (defn st-feasible? [ps sts j t] (and (preds-finished? ps sts j t) (enough-capacity? ps sts j t)))
 
@@ -113,8 +115,21 @@
 
 (defn uneligible-due-capacity [ps sts t] (difference (eligible-set ps sts t) (eligible-and-feasible-set ps sts t)))
 
+(defn restrict-to-max-oc [ps oc-jumps]
+  (map2 (fn [t oc] (min oc (:zmax ps))) oc-jumps))
+
+(defn book-oc [ps sts t j]
+  (let [pa (periods-active ps t j)
+        residuals (map (partial residual-in-period ps sts) pa)
+        cap-missing (map #(- (j (:k ps)) %) residuals)
+        pmisspairs (map vector pa cap-missing)
+        misshash (into {} (filter (comp pos? first) pmisspairs))
+        old-jumps (:oc-jumps ps)
+        new-jumps (restrict-to-max-oc ps (map2 (fn [t miss] (if-let [oldval (t old-jumps)] (+ oldval miss) miss)) misshash))]
+    (assoc ps :ocjumps (remove-redundant-jumps (merge old-jumps new-jumps)))))
+
 (defn eligible-and-feas-with-oc [ps sts t]
-  (filter  (uneligible-due-capacity ps sts t)))
+  (filter (fn [j] (enough-capacity? (book-oc ps sts t j) sts j t)) (uneligible-due-capacity ps sts t)))
 
 (defn next-dp [ps sts last-dp] (->> last-dp
                                  (active-in-period ps sts)
