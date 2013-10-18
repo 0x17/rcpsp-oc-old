@@ -33,6 +33,13 @@
 (deftest test-preds (is (= '() (preds (:E example-ps) 0)))
                     (is (= '(0) (preds (:E example-ps) 1) (preds (:E example-ps) 4))))
 
+(deftest test-remove-redundant-jump-in-t
+  (= [4 {1 0, 3 4}] (remove-redundant-jump-in-t [4 {1 0, 3 4, 5 4}] 5))
+  (= [4 {1 0, 3 4, 6 4}] (remove-redundant-jump-in-t [4 {1 0, 3 4, 6 4}] 5)))
+
+(deftest test-remove-redundant-jumps
+  (= {1 0, 3 4} (remove-redundant-jumps {1 0, 2 0, 3 4, 7 4, 6 4})))
+
 (deftest test-active-in-period
   (is (= '(1) (active-in-period example-ps {0 1, 1 1} 1)))
   (is (= '(3) (active-in-period example-ps {0 1, 1 1, 2 1, 3 1} 2))))

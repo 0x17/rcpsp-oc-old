@@ -19,6 +19,16 @@
 
 (defn z [oc-jumps t] (oc-jumps (apply max (filter #(<= % t) (keys oc-jumps)))))
 
+(defn remove-redundant-jump-in-t [[last-val oc-jumps] t]
+  (if-let [val (get oc-jumps t)]
+    (if (= val last-val) [val (dissoc oc-jumps t)] [val oc-jumps])
+    [last-val oc-jumps]))
+
+(defn remove-redundant-jumps [oc-jumps]
+  (let [last-t (apply max (keys oc-jumps))
+        first-t (apply min (keys oc-jumps))]
+    (reduce remove-redundant-jump-in-t [(get oc-jumps first-t) oc-jumps] (set-range first-t last-t))))
+
 (defn st [d j ftj] (- ftj (d j)))
 (defn ft [d j stj] (+ stj (d j)))
 
@@ -100,6 +110,11 @@
 (defn eligible-set [ps sts t] (filter (fn [j] (preds-finished? ps sts j t)) (difference (:J ps) (keys sts))))
 
 (defn eligible-and-feasible-set [ps sts t] (filter (fn [j] (enough-capacity? ps sts j t)) (eligible-set ps sts t)))
+
+(defn uneligible-due-capacity [ps sts t] (difference (eligible-set ps sts t) (eligible-and-feasible-set ps sts t)))
+
+(defn eligible-and-feas-with-oc [ps sts t]
+  (filter  (uneligible-due-capacity ps sts t)))
 
 (defn next-dp [ps sts last-dp] (->> last-dp
                                  (active-in-period ps sts)
