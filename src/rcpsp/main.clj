@@ -111,7 +111,8 @@
 (defn book-oc [ps sts t j]
   (let [misshash (period-to-missing ps sts j (periods-active ps t j))
         old-jumps (:oc-jumps ps)
-        new-jumps (restrict-to-max-oc ps (map2 (fn [t miss] (if-let [oldval (get old-jumps t)] (+ oldval miss) miss)) misshash))]
+        new-jumps (->> (map2 (fn [t miss] (if-let [oldval (get old-jumps t)] (+ oldval miss) miss)) misshash)
+                       (restrict-to-max-oc ps))]
     (assoc ps :ocjumps (remove-redundant-jumps (merge old-jumps new-jumps)))))
 
 ;=======================================================================================================================

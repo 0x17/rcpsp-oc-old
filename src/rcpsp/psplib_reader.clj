@@ -1,4 +1,4 @@
-(ns rcpsp.psplib-reader (:use clojure.test clojure.set rcpsp.helpers rcpsp.main))
+(ns rcpsp.psplib-reader (:use (clojure test set) (rcpsp helpers main)))
 
 (defn parse-nums [line] (read-string (str "(" line ")")))
 

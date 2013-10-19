@@ -1,4 +1,4 @@
-(ns rcpsp.main-tests (:use clojure.set clojure.test rcpsp.helpers rcpsp.main rcpsp.psplib-reader))
+(ns rcpsp.main-tests (:use (clojure set test) (rcpsp helpers main psplib-reader)))
 
 ;=======================================================================================================================
 ; Example data
