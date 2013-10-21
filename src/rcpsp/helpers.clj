@@ -15,7 +15,8 @@
   ([coll] (apply + coll))
   ([f coll] (apply + (map f coll))))
 
-(defn assoc-to-val [m v keys] (if (empty? keys) m (apply assoc m (interleave keys (repeat v)))))
+;(defn assoc-to-val [m v keys] (if (empty? keys) m (apply assoc m (interleave keys (repeat v)))))
+(defn assoc-to-val [m v keys] (zipmap keys (repeat v)))
 
 (defn cons-if-empty [head tail] (if (empty? tail) (cons head tail) tail))
 

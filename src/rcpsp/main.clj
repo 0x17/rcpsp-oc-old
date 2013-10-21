@@ -158,6 +158,21 @@
           (recur (psgs-step λ ps acc)))) second))
 
 ;=======================================================================================================================
+; Lower/upper bounds
+;=======================================================================================================================
+(defn shortexpensive-schedule [f ps λ]
+  (f (assoc ps :oc-jumps {0 (:zmax ps)}) λ))
+
+(defn longcheap-schedule [f ps λ]
+  (f (assoc ps :oc-jumps {0 0}) λ))
+
+(def shortexpensive-ssgs (partial shortexpensive-schedule ssgs))
+(def longcheap-ssgs (partial longcheap-schedule ssgs))
+
+(def shortexpensive-psgs (partial shortexpensive-schedule psgs))
+(def longcheap-psgs (partial longcheap-schedule psgs))
+
+;=======================================================================================================================
 ; Fitness calculation
 ;=======================================================================================================================
 (defn makespan-of-schedule [ps sts] (let [lj (last-job-sched sts)]
@@ -214,24 +229,3 @@
 (defn active? [ps sts]
   (and (semi-active? ps sts)
        (every? (comp not (partial global-ls-feasible? ps sts)) (keys sts))))
-
-;=======================================================================================================================
-; Display output
-;=======================================================================================================================
-(defn times-capacity [ps jobs] (flatten (map (fn [j] (repeat ((:k ps) j) j)) jobs)))
-
-(defn fill-to-capacity [ps t v]
-  (let [cap-in-t (+ (:k ps) (z (:oc-jumps ps) t))]
-    (if (< (count v) cap-in-t)
-      (fill-to-capacity ps t (cons 0 v))
-      v)))
-
-(defn col-for-period [ps sts t] (->> (active-in-period ps sts t)
-                                     (times-capacity ps)
-                                     (fill-to-capacity ps t)))
-
-(defn display-schedule [ps sts]
-  (map (partial col-for-period ps sts) (periods-in-schedule ps sts)))
-
-(defn display-residuals [ps sts]
-  (map (partial residual-in-period ps sts) (periods-in-schedule ps sts)))
