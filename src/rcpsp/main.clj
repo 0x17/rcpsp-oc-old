@@ -268,8 +268,7 @@
       (let [stj (best-stj ps sts j)
             new-ps (book-oc ps sts stj j)
             new-jumps (:oc-jumps new-ps)
-            new-sts (ssgs new-ps λ)
-            new-ms (makespan-of-schedule new-ps new-sts)]
+            new-sts (ssgs new-ps λ)]
         (if (> (fitness new-ps new-sts)
                (fitness ps sts))
           new-jumps
