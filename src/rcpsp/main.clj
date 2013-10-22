@@ -7,6 +7,9 @@
 
 (defn last-job-sched [sts] (apply max (keys sts)))
 (defn last-job-ps [ps] (apply max (:J ps)))
+(defn first-job-ps [ps] (apply min (:J ps)))
+
+(defn actual-jobs [ps] (difference (:J ps) #{(first-job-ps ps) (last-job-ps ps)}))
 
 (defn preds [E j] (->> E
                      (select #(= (second %) j))
@@ -97,23 +100,35 @@
 (defn remove-redundant-jumps [oc-jumps]
   (let [last-t (apply max (keys oc-jumps))
         first-t (apply min (keys oc-jumps))]
-    (reduce remove-redundant-jump-in-t [(get oc-jumps first-t) oc-jumps] (set-range first-t last-t))))
+      (second (reduce remove-redundant-jump-in-t
+                      [(get oc-jumps first-t) oc-jumps]
+                      (set-range (inc first-t) last-t)))))
 
 (defn restrict-to-max-oc [ps oc-jumps]
   (map2 (fn [t oc] (min oc (:zmax ps))) oc-jumps))
 
 (defn capacity-missing [ps sts j periods]
-  (->> periods (map (partial residual-in-period ps sts)) (map #(- (get-in ps [:k j]) %))))
+  (->> periods (map (partial residual-in-period ps sts)) (map #(- (get-in ps [:k j]) %)) (map (partial max 0))))
 
 (defn period-to-missing [ps sts j periods]
-  (->> (capacity-missing ps sts j periods) (map vector periods) (filter (comp pos? first)) (into {})))
+  (->> (capacity-missing ps sts j periods)
+       (map vector periods)
+       (filter (comp pos? first))
+       (into {})))
 
 (defn book-oc [ps sts t j]
-  (let [misshash (period-to-missing ps sts j (periods-active ps t j))
+  (let [misshash (period-to-missing ps sts j (union (periods-active ps t j) #{(inc (apply max (periods-active ps t j)))}))
         old-jumps (:oc-jumps ps)
-        new-jumps (->> (map2 (fn [t miss] (if-let [oldval (get old-jumps t)] (+ oldval miss) miss)) misshash)
+        new-jumps (->> (map2 (fn [t miss]
+                               (if-let [oldval (get old-jumps t)]
+                                 (+ oldval miss)
+                                 miss)) misshash)
                        (restrict-to-max-oc ps))]
-    (assoc ps :ocjumps (remove-redundant-jumps (merge old-jumps new-jumps)))))
+    (assoc ps :oc-jumps (remove-redundant-jumps (merge old-jumps new-jumps)))))
+
+(defn sum-missing [ps sts j t]
+  (let [ptomiss (period-to-missing ps sts j (periods-active ps t j))]
+    (apply + (vals ptomiss))))
 
 ;=======================================================================================================================
 ; Serial schedule generation scheme
@@ -183,8 +198,8 @@
   (sum (partial z (:oc-jumps ps)) (periods-in-schedule ps sts)))
 
 (defn revenue [ps sts]
-  (let [qlt (ps :qlt)]
-    (->> (ps :qlevels)
+  (let [qlt (:qlt ps)]
+    (->> (:qlevels ps)
          (map (fn [qlevel] (qlt [qlevel (makespan-of-schedule ps sts)])))
          (apply max))))
 
@@ -223,9 +238,45 @@
 (defn global-ls-feasible? [ps sts j]
   (exists? (fn [δ] (global-ls? ps sts j δ)) (range 1 (sts j))))
 
+;=======================================================================================================================
+; Classification
+;=======================================================================================================================
 (defn semi-active? [ps sts]
   (every? (comp not (partial local-ls-feasible? ps sts)) (keys sts)))
 
 (defn active? [ps sts]
   (and (semi-active? ps sts)
        (every? (comp not (partial global-ls-feasible? ps sts)) (keys sts))))
+
+;=======================================================================================================================
+; Naive heuristic for booking overcapacity
+;=======================================================================================================================
+(defn actual-est [ps sts j]
+  (apply max (map (fn [i] (ft (:d ps) i (sts i))) (preds (:E ps) j))))
+
+(defn best-stj [ps sts j]
+  (let [cstj (sts j)
+        aestj (actual-est ps sts j)
+        t-candidates (set-range aestj (dec cstj))
+        t-to-sum (zipmap t-candidates (map (partial sum-missing ps sts j) t-candidates))]
+    (first (last (sort-by second t-to-sum)))))
+
+(defn try-oc-for [ps λ jumps j]
+  (let [sts (ssgs ps λ)]
+    (if (= (sts j) (actual-est ps sts j))
+      jumps
+      (let [stj (best-stj ps sts j)
+            new-ps (book-oc ps sts stj j)
+            new-jumps (:oc-jumps new-ps)
+            new-sts (ssgs new-ps λ)
+            new-ms (makespan-of-schedule new-ps new-sts)]
+        (if (> (fitness new-ps new-sts)
+               (fitness ps sts))
+          new-jumps
+          jumps)))))
+
+(defn naive-oc-heuristic [ps λ]
+  (reduce (partial try-oc-for ps λ) (:oc-jumps ps) (actual-jobs ps)))
+
+(defn naive-oc-heuristic-schedule [ps λ]
+  (ssgs (assoc ps :oc-jumps (naive-oc-heuristic ps λ)) λ))

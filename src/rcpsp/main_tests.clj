@@ -34,11 +34,12 @@
                     (is (= '(0) (preds (:E example-ps) 1) (preds (:E example-ps) 4))))
 
 (deftest test-remove-redundant-jump-in-t
-  (= [4 {1 0, 3 4}] (remove-redundant-jump-in-t [4 {1 0, 3 4, 5 4}] 5))
-  (= [4 {1 0, 3 4, 6 4}] (remove-redundant-jump-in-t [4 {1 0, 3 4, 6 4}] 5)))
+  (is (= [4 {1 0, 3 4}] (remove-redundant-jump-in-t [4 {1 0, 3 4, 5 4}] 5)))
+  (is (= [4 {1 0, 3 4, 6 4}] (remove-redundant-jump-in-t [4 {1 0, 3 4, 6 4}] 5))))
 
 (deftest test-remove-redundant-jumps
-  (= {1 0, 3 4} (remove-redundant-jumps {1 0, 2 0, 3 4, 7 4, 6 4})))
+  (is (= {3 0} (remove-redundant-jumps {3 0})))
+  (is (= {1 0, 3 4} (remove-redundant-jumps {1 0, 2 0, 3 4, 7 4, 6 4}))))
 
 (deftest test-active-in-period
   (is (= '(1) (active-in-period example-ps {0 1, 1 1} 1)))
@@ -147,10 +148,23 @@
   (is (= {1 0, 3 5, 4 10} (restrict-to-max-oc example-ps {1 0, 3 5, 4 20}))))
 
 (deftest test-capacity-missing
-  (= '(1) (capacity-missing example-ps {1 1, 4 1} 2 #{2})))
+  (is (= '(1) (capacity-missing example-ps {1 1, 4 1} 2 #{2}))))
 
 (deftest test-period-to-missing
-  (= {2 1} (period-to-missing example-ps {1 1, 4 1} 2 #{2})))
+  (is (= {2 1} (period-to-missing example-ps {1 1, 4 1} 2 #{2}))))
 
 (deftest test-book-oc
-  (= {1 0, 2 1, 3 5} (:oc-jumps (book-oc example-ps {1 1, 4 1} 2 2))))
+  (is (= {1 0, 2 1, 3 5} (:oc-jumps (book-oc example-ps {1 1, 4 1} 2 2))))
+  (is (= {1 0, 2 1, 3 0} (:oc-jumps (book-oc (assoc example-ps :oc-jumps {1 0}) {1 1, 4 1} 2 2)))))
+
+(deftest test-actual-est
+  (is (= 5 (actual-est example-ps {0 0, 1 1, 2 4} 3))))
+
+(deftest test-sum-missing
+  (is (= 1 (sum-missing example-ps {0 1, 1 1, 2 2, 3 3} 4 1))))
+
+(deftest test-best-stj
+  (is (= 1 (best-stj example-ps {0 1, 1 1, 2 2, 3 3, 4 2} 4))))
+
+(deftest test-try-oc-for
+  (is (= (assoc (:oc-jumps example-ps) 2 1) (try-oc-for example-ps example-λ (:oc-jumps example-ps) 4))))
