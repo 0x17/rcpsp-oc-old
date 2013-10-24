@@ -14,10 +14,13 @@
                    :k {0 0, 1 1, 2 2, 3 1, 4 1, 5 2, 6 0}
                    :E #{[0 1] [1 2] [2 3] [0 4] [4 5] [5 6] [3 6]}
                    :K 2
-                   :oc-jumps {1 0, 3 5}
+                   :oc-jumps {1 0}
                    :zmax 10
                    :qlevels ['A 'AA 'AAA]
                    :qlt example-qlt}))
+
+(def example-ps-woc (assoc example-ps :oc-jumps {1 0, 3 5}))
+
 (def example-λ '(0 1 2 3 4 5 6))
 
 (def example-schedule (ssgs example-ps example-λ))
@@ -77,7 +80,7 @@
   (is (= 6 (makespan-of-schedule example-ps {6 6}))))
 
 (deftest test-periods-in-schedule
-  (is (= #{1 2 3 4 5 6} (periods-in-schedule example-ps {6 6}))))
+  (is (= #{1 2 3 4 5} (periods-in-schedule example-ps {6 6}))))
 
 (deftest test-res-usage-feasible?
   (is (false? (res-usage-feasible? example-ps {0 1, 1 1, 4 1, 2 2, 3 3, 5 5, 6 6})))
@@ -151,20 +154,37 @@
   (is (= '(1) (capacity-missing example-ps {1 1, 4 1} 2 #{2}))))
 
 (deftest test-period-to-missing
-  (is (= {2 1} (period-to-missing example-ps {1 1, 4 1} 2 #{2}))))
+  (is (= {2 1} (period-to-missing example-ps {1 1, 4 1} 2 #{2})))
+  (is (= {2 1, 3 0} (period-to-missing example-ps (dissoc (ssgs example-ps example-λ) 4) 4 #{2 3}))))
 
 (deftest test-book-oc
-  (is (= {1 0, 2 1, 3 5} (:oc-jumps (book-oc example-ps {1 1, 4 1} 2 2))))
-  (is (= {1 0, 2 1, 3 0} (:oc-jumps (book-oc (assoc example-ps :oc-jumps {1 0}) {1 1, 4 1} 2 2)))))
+  (is (= {1 0, 2 1, 3 5} (:oc-jumps (book-oc example-ps-woc {1 1, 4 1} 2 2))))
+  (is (= {1 0, 2 1, 3 0} (:oc-jumps (book-oc (assoc example-ps-woc :oc-jumps {1 0}) {1 1, 4 1} 2 2))))
+  (is (= {1 0, 2 1, 3 0} (:oc-jumps (book-oc example-ps (dissoc (ssgs example-ps example-λ) 4) 1 4)))))
 
 (deftest test-actual-est
-  (is (= 5 (actual-est example-ps {0 0, 1 1, 2 4} 3))))
+  (is (= 5 (actual-est example-ps {0 0, 1 1, 2 4} 3)))
+  (is (= 1 (actual-est example-ps (ssgs example-ps example-λ) 4))))
 
 (deftest test-sum-missing
-  (is (= 1 (sum-missing example-ps {0 1, 1 1, 2 2, 3 3} 4 1))))
+  (is (= 1 (sum-missing example-ps {0 1, 1 1, 2 2, 3 3} 4 1)))
+  (is (= 1 (sum-missing example-ps (dissoc (ssgs example-ps example-λ) 4) 4 1)))
+  (is (= 1 (sum-missing example-ps (dissoc (ssgs example-ps example-λ) 4) 4 2))))
 
 (deftest test-best-stj
-  (is (= 1 (best-stj example-ps {0 1, 1 1, 2 2, 3 3, 4 2} 4))))
+  (is (= 1 (best-stj example-ps {0 1, 1 1, 2 2, 3 3, 4 2} 4)))
+  (is (= 1 (best-stj example-ps (ssgs example-ps example-λ) 4))))
 
 (deftest test-try-oc-for
-  (is (= (assoc (:oc-jumps example-ps) 2 1) (try-oc-for example-ps example-λ (:oc-jumps example-ps) 4))))
+  (is (= {1 0} (:oc-jumps (try-oc-for example-λ example-ps 4))))
+  (is (= {1 0, 2 1, 3 0} (:oc-jumps (try-oc-for example-λ (assoc-in example-ps [:k 5] 1) 4)))))
+
+(deftest test-revenue
+  (is (= 30 (revenue example-ps {0 1, 1 1, 2 1, 3 3, 4 3, 5 5, 6 6}))))
+
+(deftest test-fitness
+  (let [fitness1 (fitness example-ps {0 1, 1 1, 2 1, 3 3, 4 3, 5 5, 6 6}) ; = (ssgs ex-ps ex-λ)
+        fitness2 (fitness example-ps {0 1, 1 1, 4 1, 2 2, 5 3, 3 3, 6 5})]
+    (is (> fitness2 fitness1))
+    (is (= 30 fitness1))
+    (is (= 40 fitness2))))

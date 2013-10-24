@@ -1,6 +1,4 @@
 # MIP model for RCPSP-Q with possibility to book overtimes at constant price.
-# This simplified version only considers 1 type of renewable resource and no
-# non-renewables.
 
 # TODO: Move params to external file
 
@@ -10,7 +8,6 @@ set T := { 1 .. timeHorizon };
 param nRes := 1;
 set R := { 1 .. nRes };
 param K[R] := <1> 0.0;
-
 param kappa[R] := <1> 1; # cost per unit of overtime
 param zMax[R] := <1> 4; # maximum overtime capacity
 
@@ -40,8 +37,7 @@ var z[R*T] integer >= 0;
 var makespan integer >= 0;
 #var revenue integer >= 0;
 
-minimize costs: makespan
-				+ (sum <r> in R : sum <t> in T : z[r,t] * kappa[r]); # total overcapacity costs
+minimize costs: makespan + (sum <r> in R : sum <t> in T : z[r,t] * kappa[r]); # total overcapacity costs
 
 #subto syncrevenue: revenue == (max <l> in Lstar : q[l, makespan]);
 subto syncmakespan: makespan == sum <t> in T : t * x[last, t];

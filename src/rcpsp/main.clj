@@ -36,6 +36,9 @@
 (defn ests [ps] (reduce (partial est ps) {0 1} (difference (:J ps) #{0})))
 (defn efts [ps] (map2 (partial ft (:d ps)) ests))
 
+(defn actual-est [ps sts j]
+  (apply max (map (fn [i] (ft (:d ps) i (sts i))) (preds (:E ps) j))))
+
 (defn minimal-makespan [ps] ((efts (:d ps)) (last-job-ps ps)))
 
 (defn lft [ps lfts j]
@@ -190,9 +193,9 @@
 ;=======================================================================================================================
 ; Fitness calculation
 ;=======================================================================================================================
-(defn makespan-of-schedule [ps sts] (let [lj (last-job-sched sts)]
-                                      (ft (:d ps) lj (sts lj))))
-(defn periods-in-schedule [ps sts] (set-range 1 (makespan-of-schedule ps sts)))
+(defn makespan-of-schedule [ps sts] (let [lj (last-job-sched sts)] (ft (:d ps) lj (sts lj))))
+
+(defn periods-in-schedule [ps sts] (set-range 1 (dec (makespan-of-schedule ps sts))))
 
 (defn total-overtime-cost [ps sts]
   (sum (partial z (:oc-jumps ps)) (periods-in-schedule ps sts)))
@@ -204,6 +207,8 @@
          (apply max))))
 
 (defn fitness [ps sts] (- (revenue ps sts) (total-overtime-cost ps sts)))
+;(defn fitness [ps sts] (- (makespan-of-schedule ps sts)))
+(def profit fitness)
 
 ;=======================================================================================================================
 ; Feasibility checks
@@ -249,33 +254,30 @@
        (every? (comp not (partial global-ls-feasible? ps sts)) (keys sts))))
 
 ;=======================================================================================================================
-; Naive heuristic for booking overcapacity
+; Naivé heuristic for booking overcapacity
 ;=======================================================================================================================
-(defn actual-est [ps sts j]
-  (apply max (map (fn [i] (ft (:d ps) i (sts i))) (preds (:E ps) j))))
-
 (defn best-stj [ps sts j]
   (let [cstj (sts j)
         aestj (actual-est ps sts j)
         t-candidates (set-range aestj (dec cstj))
-        t-to-sum (zipmap t-candidates (map (partial sum-missing ps sts j) t-candidates))]
-    (first (last (sort-by second t-to-sum)))))
+        t-to-sum (zipmap t-candidates (map (partial sum-missing ps (dissoc sts j) j) t-candidates))]
+    (last (first (sort-by second t-to-sum)))))
 
-(defn try-oc-for [ps λ jumps j]
+(defn try-oc-for [λ ps j]
   (let [sts (ssgs ps λ)]
     (if (= (sts j) (actual-est ps sts j))
-      jumps
+      ps
       (let [stj (best-stj ps sts j)
-            new-ps (book-oc ps sts stj j)
-            new-jumps (:oc-jumps new-ps)
+            sts-wout-j (dissoc sts j)
+            new-ps (book-oc ps sts-wout-j stj j)
             new-sts (ssgs new-ps λ)]
         (if (> (fitness new-ps new-sts)
                (fitness ps sts))
-          new-jumps
-          jumps)))))
+          new-ps
+          ps)))))
 
 (defn naive-oc-heuristic [ps λ]
-  (reduce (partial try-oc-for ps λ) (:oc-jumps ps) (actual-jobs ps)))
+  (reduce (partial try-oc-for λ) ps (actual-jobs ps)))
 
 (defn naive-oc-heuristic-schedule [ps λ]
-  (ssgs (assoc ps :oc-jumps (naive-oc-heuristic ps λ)) λ))
+  (ssgs (naive-oc-heuristic ps λ) λ))
