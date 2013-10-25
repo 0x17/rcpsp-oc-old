@@ -1,4 +1,4 @@
-(ns rcpsp.schedule-view (:use (rcpsp main)) (:import (javax.swing JButton JFrame JPanel JScrollPane)))
+(ns rcpsp.schedule-view (:use (rcpsp main helpers)) (:import (javax.swing JButton JFrame JPanel JScrollPane)))
 
 ;=======================================================================================================================
 ; Display output
@@ -6,7 +6,7 @@
 (defn times-capacity [ps jobs] (flatten (map (fn [j] (repeat ((:k ps) j) j)) jobs)))
 
 (defn fill-to-capacity [ps t v]
-  (let [cap-in-t (+ (:k ps) (z (:oc-jumps ps) t))]
+  (let [cap-in-t (+ (:K ps) (z (:oc-jumps ps) t))]
     (if (< (count v) cap-in-t)
       (fill-to-capacity ps t (cons 0 v))
       v)))
@@ -15,10 +15,16 @@
                                      (times-capacity ps)
                                      (fill-to-capacity ps t)))
 
-(defn display-schedule [ps sts]
+(defn schedule-columns [ps sts]
   (map (partial col-for-period ps sts) (periods-in-schedule ps sts)))
 
-(defn display-residuals [ps sts]
+(def schedule-chart (comp transpose schedule-columns))
+
+(defn print-chart [ps sts]
+  (let [chart (schedule-chart ps sts)]
+    (println (apply str (interpose "\n" (map pr-str chart))))))
+
+(defn residuals-in-schedule [ps sts]
   (map (partial residual-in-period ps sts) (periods-in-schedule ps sts)))
 
 ;=======================================================================================================================

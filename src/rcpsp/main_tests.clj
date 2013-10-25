@@ -188,3 +188,9 @@
     (is (> fitness2 fitness1))
     (is (= 30 fitness1))
     (is (= 40 fitness2))))
+
+(deftest test-naive-oc-heuristic
+  (is (=  (:oc-jumps (naive-oc-heuristic example-ps example-λ)))))
+
+(deftest test-naive-oc-heuristic-schedule
+  (is (=  (naive-oc-heuristic-schedule example-ps example-λ))))

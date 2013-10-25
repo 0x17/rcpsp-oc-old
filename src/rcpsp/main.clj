@@ -263,6 +263,8 @@
         t-to-sum (zipmap t-candidates (map (partial sum-missing ps (dissoc sts j) j) t-candidates))]
     (last (first (sort-by second t-to-sum)))))
 
+; FIXME: Einige Linksverschiebungen führen erst zu kürzerer Makespan nachdem
+; nachfolgende AG ebenfalls nach links verschoben worden sind!!!
 (defn try-oc-for [λ ps j]
   (let [sts (ssgs ps λ)]
     (if (= (sts j) (actual-est ps sts j))

@@ -51,3 +51,10 @@
 (defn elems-between [start end coll] (->> coll (drop (inc start)) (take (dec (- end start)))))
 
 (defn read-lines [f] (seq (.split (slurp f) "\n")))
+
+(defn get-col [A j]
+  (map (fn [row] (nth row j)) A))
+
+(defn transpose [A]
+  (let [ncols (count (first A))]
+    (map (fn [j] (get-col A j)) (range ncols))))
